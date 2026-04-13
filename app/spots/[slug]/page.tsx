@@ -13,9 +13,9 @@ import { getRelatedSpots, getSpotBySlug } from "@/lib/queries";
 export default async function SpotDetailPage({
   params
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const { slug } = params;
+  const { slug } = await params;
   const result = await getSpotBySlug(slug);
 
   if (result.redirectSlug) {
