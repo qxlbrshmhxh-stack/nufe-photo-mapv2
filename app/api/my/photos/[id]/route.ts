@@ -15,7 +15,23 @@ function getStorageObjectPath(imageUrl: string, bucket: string) {
   return decodeURIComponent(imageUrl.slice(markerIndex + marker.length));
 }
 
-async function getOwnedPhoto(photoId: string, userId: string) {
+type LinkedSpot = {
+  id: string;
+  slug: string;
+  created_by: string | null;
+};
+
+type OwnedPhoto = {
+  id: string;
+  user_id: string;
+  spot_id: string;
+  image_url: string;
+  title: string;
+  caption: string | null;
+  spots?: LinkedSpot[] | null;
+};
+
+async function getOwnedPhoto(photoId: string, userId: string): Promise<OwnedPhoto> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("photos")
@@ -31,15 +47,7 @@ async function getOwnedPhoto(photoId: string, userId: string) {
     throw new Error("You can only manage your own uploaded photos.");
   }
 
-  return data as {
-    id: string;
-    user_id: string;
-    spot_id: string;
-    image_url: string;
-    title: string;
-    caption: string | null;
-    spots?: { id: string; slug: string; created_by: string | null } | null;
-  };
+  return data as OwnedPhoto;
 }
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
@@ -60,6 +68,8 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     }
 
     const ownedPhoto = await getOwnedPhoto(id, user.id);
+    const linkedSpot = ownedPhoto.spots?.[0] ?? null;
+
     const supabase = await createSupabaseServerClient();
     const { error } = await supabase
       .from("photos")
@@ -76,8 +86,8 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
     revalidatePath("/user");
     revalidatePath("/");
-    if (ownedPhoto.spots?.slug) {
-      revalidatePath(`/spots/${ownedPhoto.spots.slug}`);
+    if (linkedSpot?.slug) {
+      revalidatePath(`/spots/${linkedSpot.slug}`);
     }
 
     return NextResponse.json({
@@ -109,11 +119,17 @@ export async function DELETE(_request: Request, context: { params: Promise<{ id:
 
     const { id } = await context.params;
     const ownedPhoto = await getOwnedPhoto(id, user.id);
+    const linkedSpot = ownedPhoto.spots?.[0] ?? null;
+
     const supabase = createSupabaseAdminClient();
     const bucket = getStorageBucketName();
     const objectPath = getStorageObjectPath(ownedPhoto.image_url, bucket);
 
-    const { error: photoDeleteError } = await supabase.from("photos").delete().eq("id", id).eq("user_id", user.id);
+    const { error: photoDeleteError } = await supabase
+      .from("photos")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", user.id);
 
     if (photoDeleteError) {
       throw new Error(`Failed to delete photo: ${photoDeleteError.message}`);
@@ -128,7 +144,7 @@ export async function DELETE(_request: Request, context: { params: Promise<{ id:
     }
 
     let deletedOwnedSpot = false;
-    if (ownedPhoto.spots?.id && ownedPhoto.spots.created_by === user.id) {
+    if (linkedSpot?.id && linkedSpot.created_by === user.id) {
       const { count: remainingPhotoCount, error: countError } = await supabase
         .from("photos")
         .select("id", { count: "exact", head: true })
@@ -142,7 +158,7 @@ export async function DELETE(_request: Request, context: { params: Promise<{ id:
         const { error: spotDeleteError } = await supabase
           .from("spots")
           .delete()
-          .eq("id", ownedPhoto.spots.id)
+          .eq("id", linkedSpot.id)
           .eq("created_by", user.id);
 
         if (spotDeleteError) {
@@ -155,8 +171,8 @@ export async function DELETE(_request: Request, context: { params: Promise<{ id:
 
     revalidatePath("/user");
     revalidatePath("/");
-    if (ownedPhoto.spots?.slug) {
-      revalidatePath(`/spots/${ownedPhoto.spots.slug}`);
+    if (linkedSpot?.slug) {
+      revalidatePath(`/spots/${linkedSpot.slug}`);
     }
     revalidatePath("/upload");
 
