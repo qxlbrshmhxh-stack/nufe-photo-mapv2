@@ -8,6 +8,14 @@ const staticPublicSupabaseEnv = {
   storageBucket: process.env.SUPABASE_STORAGE_BUCKET
 };
 
+function getProcessEnv() {
+  if (typeof process === "undefined") {
+    return undefined;
+  }
+
+  return process.env as RuntimeEnvRecord;
+}
+
 function getWorkerRuntimeEnv() {
   const globalScope = globalThis as typeof globalThis & {
     __env__?: RuntimeEnvRecord;
@@ -19,14 +27,17 @@ function getWorkerRuntimeEnv() {
 }
 
 function getRuntimeEnv(name: string) {
-  return getWorkerRuntimeEnv()?.[name];
+  return getProcessEnv()?.[name] ?? getWorkerRuntimeEnv()?.[name];
 }
 
 export function getPublicSupabaseEnv() {
   const supabaseUrl =
-    staticPublicSupabaseEnv.supabaseUrl ?? getRuntimeEnv("NEXT_PUBLIC_SUPABASE_URL");
+    staticPublicSupabaseEnv.supabaseUrl ??
+    getRuntimeEnv("NEXT_PUBLIC_SUPABASE_URL");
+
   const supabaseAnonKey =
-    staticPublicSupabaseEnv.supabaseAnonKey ?? getRuntimeEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    staticPublicSupabaseEnv.supabaseAnonKey ??
+    getRuntimeEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(
