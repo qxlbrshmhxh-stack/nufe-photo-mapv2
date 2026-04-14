@@ -24,22 +24,17 @@ function getRuntimeEnv(name: string) {
   return getProcessEnv()?.[name] ?? getWorkerRuntimeEnv()?.[name];
 }
 
-function assertSupabaseEnv() {
-  const supabaseUrl = getRuntimeEnv("NEXT_PUBLIC_SUPABASE_URL");
-  const supabaseAnonKey = getRuntimeEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+function assertSupabaseAdminEnv() {
+  const supabaseUrl =
+    getRuntimeEnv("SUPABASE_URL") ??
+    getRuntimeEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const supabaseServiceRoleKey = getRuntimeEnv("SUPABASE_SERVICE_ROLE_KEY");
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseUrl) {
     throw new Error(
-      "Missing Supabase environment variables. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in environment variables."
+      "Missing Supabase admin environment variables. Set SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL."
     );
   }
-
-  return { supabaseUrl, supabaseAnonKey };
-}
-
-function assertSupabaseAdminEnv() {
-  const { supabaseUrl } = assertSupabaseEnv();
-  const supabaseServiceRoleKey = getRuntimeEnv("SUPABASE_SERVICE_ROLE_KEY");
 
   if (!supabaseServiceRoleKey) {
     throw new Error(
