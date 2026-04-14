@@ -181,6 +181,11 @@ export async function DELETE(_request: Request, context: { params: Promise<{ id:
       deletedOwnedSpot
     });
   } catch (error) {
+    console.error("[my/photos/delete] failed", {
+      route: "app/api/my/photos/[id]/route.ts",
+      message: error instanceof Error ? error.message : "Unknown delete error"
+    });
+
     return NextResponse.json(
       {
         success: false,
