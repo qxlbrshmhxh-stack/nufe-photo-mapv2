@@ -52,7 +52,7 @@ export function UploadForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string; publicSpotSlug?: string | null } | null>(null);
-  const [selectedFileName, setSelectedFileName] = useState(siteConfig.upload.noFileSelected);
+  const [selectedFileName, setSelectedFileName] = useState<string>(siteConfig.upload.noFileSelected);
   const [photographerName, setPhotographerName] = useState(initialPhotographerName);
   const [caption, setCaption] = useState("");
   const [customTitle, setCustomTitle] = useState("");

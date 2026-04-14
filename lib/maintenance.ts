@@ -222,13 +222,20 @@ export async function getMaintenanceIssues(): Promise<MaintenanceIssue[]> {
   const spotIdSet = new Set(spotRows.map((spot) => spot.id));
   const photoIdSet = new Set((allPhotos.data ?? []).map((photo) => photo.id));
   const photosOnNonPublicSpots = (photosWithSpots.data ?? [])
-    .filter((photo) => !photo.spots || photo.spots.status !== "published")
-    .map((photo) => ({
+  .filter((photo) => {
+    const linkedSpot = photo.spots?.[0] ?? null;
+    return !linkedSpot || linkedSpot.status !== "published";
+  })
+  .map((photo) => {
+    const linkedSpot = photo.spots?.[0] ?? null;
+
+    return {
       id: photo.id,
       label: photo.title,
       href: `/admin/photos/${photo.id}`,
-      detail: photo.spots ? `spot status: ${photo.spots.status}` : "missing spot"
-    }));
+      detail: linkedSpot ? `spot status: ${linkedSpot.status}` : "missing spot"
+    };
+  });
 
   const spotsWithZeroPhotos = spotRows
     .filter((spot) => !isMergedSpotStatus(spot.status))
