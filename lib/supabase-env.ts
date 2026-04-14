@@ -1,13 +1,5 @@
 type RuntimeEnvRecord = Record<string, string | undefined>;
 
-const staticPublicSupabaseEnv = {
-  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
-  emailRedirectPath: process.env.NEXT_PUBLIC_SUPABASE_EMAIL_REDIRECT_PATH,
-  storageBucket: process.env.SUPABASE_STORAGE_BUCKET
-};
-
 function getProcessEnv() {
   if (typeof process === "undefined") {
     return undefined;
@@ -32,11 +24,11 @@ function getRuntimeEnv(name: string) {
 
 export function getPublicSupabaseEnv() {
   const supabaseUrl =
-    staticPublicSupabaseEnv.supabaseUrl ??
+    process.env.NEXT_PUBLIC_SUPABASE_URL ??
     getRuntimeEnv("NEXT_PUBLIC_SUPABASE_URL");
 
   const supabaseAnonKey =
-    staticPublicSupabaseEnv.supabaseAnonKey ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
     getRuntimeEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
 
   if (!supabaseUrl || !supabaseAnonKey) {
@@ -49,15 +41,15 @@ export function getPublicSupabaseEnv() {
     supabaseUrl,
     supabaseAnonKey,
     siteUrl:
-      staticPublicSupabaseEnv.siteUrl ??
+      process.env.NEXT_PUBLIC_SITE_URL ??
       getRuntimeEnv("NEXT_PUBLIC_SITE_URL") ??
       "http://localhost:3000",
     emailRedirectPath:
-      staticPublicSupabaseEnv.emailRedirectPath ??
+      process.env.NEXT_PUBLIC_SUPABASE_EMAIL_REDIRECT_PATH ??
       getRuntimeEnv("NEXT_PUBLIC_SUPABASE_EMAIL_REDIRECT_PATH") ??
       "/auth/callback",
     storageBucket:
-      staticPublicSupabaseEnv.storageBucket ??
+      process.env.SUPABASE_STORAGE_BUCKET ??
       getRuntimeEnv("SUPABASE_STORAGE_BUCKET") ??
       "spot-photos"
   };
@@ -65,10 +57,10 @@ export function getPublicSupabaseEnv() {
 
 export function isPublicSupabaseConfigured() {
   return Boolean(
-    staticPublicSupabaseEnv.supabaseUrl ??
+    process.env.NEXT_PUBLIC_SUPABASE_URL ??
       getRuntimeEnv("NEXT_PUBLIC_SUPABASE_URL")
   ) && Boolean(
-    staticPublicSupabaseEnv.supabaseAnonKey ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
       getRuntimeEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
   );
 }
