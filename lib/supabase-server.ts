@@ -1,20 +1,9 @@
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const storageBucket = process.env.SUPABASE_STORAGE_BUCKET || "spot-photos";
-
-function assertSupabaseEnv() {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(
-      "Missing Supabase environment variables. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local."
-    );
-  }
-}
+import { getPublicSupabaseEnv } from "@/lib/supabase-env";
 
 export async function createSupabaseServerClient() {
-  assertSupabaseEnv();
+  const { supabaseUrl, supabaseAnonKey } = getPublicSupabaseEnv();
 
   const cookieStore = await cookies();
 
@@ -37,5 +26,5 @@ export async function createSupabaseServerClient() {
 }
 
 export function getStorageBucketName() {
-  return storageBucket;
+  return getPublicSupabaseEnv().storageBucket;
 }
